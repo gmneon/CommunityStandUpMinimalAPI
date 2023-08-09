@@ -1,17 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
-public class TodoDbContext : DbContext
+namespace TodoApi;
+
+public class TodoDbContext : IdentityDbContext<TodoUser>
 {
-    public TodoDbContext(DbContextOptions options) : base(options) { }
+    public TodoDbContext(DbContextOptions<TodoDbContext> options) : base(options) { }
 
     public DbSet<Todo> Todos => Set<Todo>();
-}
 
-public class Todo
-{
-    public int Id { get; set; }
-    [Required]
-    public string? Title { get; set; }
-    public bool IsComplete { get; set; }
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<Todo>()
+               .HasOne<TodoUser>()
+               .WithMany()
+               .HasForeignKey(t => t.OwnerId)
+               .HasPrincipalKey(u => u.UserName);
+
+        base.OnModelCreating(builder);
+    }
 }
